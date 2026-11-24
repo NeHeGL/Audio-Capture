@@ -1,6 +1,7 @@
 """Speaker loopback recorder with trim and export."""
 from __future__ import annotations
 
+import sys
 import threading
 import tkinter as tk
 from pathlib import Path
@@ -14,6 +15,23 @@ from audio_util import apply_gain_db, peak_dbfs
 from export_audio import SAVE_FILETYPES, export_file
 from playback import AudioPlayer
 from trim_bar import TrimTimeline
+
+
+def _app_base_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+    return Path(__file__).resolve().parent
+
+
+def _windows_set_app_id() -> None:
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("NeHeGL.AudioCapture.1.0")
+    except (AttributeError, OSError):
+        pass
 
 
 class AudioCaptureApp(ctk.CTk):
@@ -43,6 +61,29 @@ class AudioCaptureApp(ctk.CTk):
         self._refresh_devices()
         self.bind("<space>", lambda _e: self._toggle_play())
         self.protocol("WM_DELETE_WINDOW", self._on_close)
+        self._apply_window_icon()
+
+    def _apply_window_icon(self) -> None:
+        ico = _app_base_dir() / "icon.ico"
+        if not ico.is_file():
+            return
+        path = str(ico.resolve())
+
+        def set_icon() -> None:
+            for setter in (
+                lambda: self.iconbitmap(default=path),
+                lambda: self.tk.call("wm", "iconbitmap", self._w, "-default", path),
+                lambda: self.wm_iconbitmap(bitmap=path),
+            ):
+                try:
+                    setter()
+                    return
+                except tk.TclError:
+                    continue
+
+        set_icon()
+        self.after_idle(set_icon)
+        self.after(200, set_icon)
 
     def _build_ui(self) -> None:
         pad = {"padx": 16, "pady": 6}
@@ -425,6 +466,7 @@ class AudioCaptureApp(ctk.CTk):
 
 
 def main() -> None:
+    _windows_set_app_id()
     app = AudioCaptureApp()
     app.mainloop()
 

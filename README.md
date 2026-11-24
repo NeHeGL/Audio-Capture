@@ -22,6 +22,11 @@ This app uses Windows **WASAPI loopback**: a capture stream taken from your **pl
 
 ## What's New
 
+### v1.0.1
+
+- **Added:** custom app icon (speaker loopback motif) for the window, taskbar, and release `.exe`.
+- **Fixed:** window icon loading on Windows when running from source (CustomTkinter + AppUserModel ID).
+
 ### v1.0.0
 
 - First public release.
