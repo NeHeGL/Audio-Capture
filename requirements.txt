@@ -1,0 +1,5 @@
+customtkinter>=5.2.0
+numpy>=1.26.0
+pyaudiowpatch>=0.2.12.6
+soundfile>=0.12.1
+pyinstaller>=6.0.0
